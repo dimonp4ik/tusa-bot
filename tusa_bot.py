@@ -1,7 +1,7 @@
 import os
 import json
 import aiohttp
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     ApplicationBuilder,
     CallbackQueryHandler,
@@ -51,7 +51,7 @@ def participants_menu(participants):
     return InlineKeyboardMarkup(buttons)
 
 # /start
-async def start(update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "Привет!\n"
         "Я бот компании TUSA GANG, здесь ты можешь получить различную информацию о компании, выбери внизу нужную кнопку."
@@ -59,17 +59,17 @@ async def start(update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text, reply_markup=main_menu())
 
 # Обработка кнопок
-async def button(update, context: ContextTypes.DEFAULT_TYPE):
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     participants = await load_participants()
 
     if query.data == "list":
-        await query.message.edit_text(
+        await query.edit_message_text(
             "Список участников:", reply_markup=participants_menu(participants)
         )
     elif query.data == "main":
-        await query.message.edit_text("Главное меню:", reply_markup=main_menu())
+        await query.edit_message_text("Главное меню:", reply_markup=main_menu())
     else:
         participant = next((p for p in participants if p["name"] == query.data), None)
         if participant:
