@@ -1,6 +1,6 @@
 {
     "participants": [
-      {"name":"Дима","bio":"Создатель компании","photo":"https://i.ibb.co/KxKM0cqh/photo-5981187215100857291-y.jpg","instagram":""},
+      {"name":"Дима","bio":"Создатель компании","photo":"https://i.ibb.co/KxKM0cqh/photo-5981187215100857291-y.jpg","instagram":"https://www.instagram.com/dimonp4ik/"},
       {"name":"Миша","bio":"","photo":"https://i.ibb.co/FbYhH5Rx/photo-5843611982316554722-y.jpg","instagram":""},
       {"name":"Юстина","bio":"","photo":"","instagram":""},
       {"name":"Даша","bio":"","photo":"","instagram":""},
@@ -19,5 +19,6 @@
   }
 
   
+
 
 
