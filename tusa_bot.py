@@ -121,7 +121,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sport_name = query.data.replace("sport_", "")
         sport = next((s for s in sports if s["name"] == sport_name), None)
         if sport:
-            text = f"🏆 {sport['name']} 🏆\n\n{sport['description']}\n\n📅 Расписание: {sport['schedule']}"
+            text = f"🏆 {sport['name']} 🏆\n\n{sport['description']}\n\n📅 Дата проведения: {sport['schedule']}"
             
             # Отправляем фото если есть
             if sport.get("photos") and len(sport["photos"]) > 0:
@@ -148,3 +148,4 @@ def run_bot():
     print("Бот запущен!")
     # Запуск polling синхронно
     app.run_polling()
+
