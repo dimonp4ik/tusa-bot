@@ -12,7 +12,7 @@ from telegram.ext import (
 # Токен из секретов Render
 TOKEN = os.getenv("TUSA_TOKEN")
 
-# Ссылка на JSON с участниками - ИСПРАВЬ ЭТУ ССЫЛКУ!
+# Ссылка на JSON с участниками
 JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participants.json"
 
 # Загрузка участников из GitHub
@@ -32,9 +32,11 @@ async def load_participants():
 
 # Главное меню
 def main_menu():
-    return InlineKeyboardMarkup(
-        [[InlineKeyboardButton("Список участников", callback_data="list")]]
-    )
+    keyboard = [
+        [InlineKeyboardButton("Список участников", callback_data="list")],
+        [InlineKeyboardButton("Наши соцсети", callback_data="socials")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
 # Кнопки участников по 3 в ряд
 def participants_menu(participants):
@@ -68,6 +70,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             "Список участников:", reply_markup=participants_menu(participants)
         )
+    elif query.data == "socials":
+        socials_text = (
+            "Наш инстаграм: https://www.instagram.com/gangtusa/following/\n"
+            "Наш телеграм канал: https://t.me/tusa_gang"
+        )
+        await query.edit_message_text(socials_text, reply_markup=main_menu())
     elif query.data == "main":
         await query.edit_message_text("Главное меню:", reply_markup=main_menu())
     else:
