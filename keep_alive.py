@@ -1,4 +1,4 @@
-ffrom flask import Flask
+from flask import Flask
 from threading import Thread
 import os
 import requests
@@ -34,4 +34,5 @@ def keep_alive():
     # Запускаем Flask сервер
     t = Thread(target=run)
     t.start()
+
 
