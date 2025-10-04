@@ -53,14 +53,8 @@ def participants_menu(participants):
 # Кнопки видов спорта
 def sports_menu(sports):
     buttons = []
-    row = []
-    for i, sport in enumerate(sports):
-        row.append(InlineKeyboardButton(sport["name"], callback_data=f"sport_{sport['name']}"))
-        if (i + 1) % 2 == 0:
-            buttons.append(row)
-            row = []
-    if row:
-        buttons.append(row)
+    for sport in sports:
+        buttons.append([InlineKeyboardButton(sport["name"], callback_data=f"sport_{sport['name']}")])
     buttons.append([InlineKeyboardButton("Главное меню", callback_data="main")])
     return InlineKeyboardMarkup(buttons)
 
@@ -85,9 +79,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Список участников:", reply_markup=participants_menu(participants)
         )
     elif query.data == "sports":
-        await query.edit_message_text(
-            "TUSA SPORT - выберите вид спорта:", reply_markup=sports_menu(sports)
-        )
+        if sports:
+            await query.edit_message_text(
+                "🏆 TUSA SPORT - выберите вид спорта:", reply_markup=sports_menu(sports)
+            )
+        else:
+            await query.edit_message_text(
+                "Спортивные события пока не добавлены.", reply_markup=main_menu()
+            )
     elif query.data == "socials":
         socials_text = (
             "Наш инстаграм: https://www.instagram.com/gangtusa/following/\n"
@@ -101,8 +100,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         participant = next((p for p in participants if p["name"] == participant_name), None)
         if participant:
             text = f"{participant['name']}\n{participant['bio']}"
-            if participant.get("instagram"):
-                text += f"\nInstagram: {participant['instagram']}"
             if participant.get("photo"):
                 await context.bot.send_photo(
                     chat_id=query.message.chat.id,
@@ -121,7 +118,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sport_name = query.data.replace("sport_", "")
         sport = next((s for s in sports if s["name"] == sport_name), None)
         if sport:
-            text = f"🏆 {sport['name']} 🏆\n\n{sport['description']}\n\n📅 Дата проведения: {sport['schedule']}"
+            text = f"🏆 {sport['name']} 🏆\n\n{sport['description']}\n\n📅 Расписание: {sport['schedule']}"
             
             # Отправляем фото если есть
             if sport.get("photos") and len(sport["photos"]) > 0:
@@ -148,4 +145,5 @@ def run_bot():
     print("Бот запущен!")
     # Запуск polling синхронно
     app.run_polling()
+
 
