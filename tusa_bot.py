@@ -12,7 +12,7 @@ from telegram.ext import (
 # Токен из секретов Render
 TOKEN = os.getenv("TUSA_TOKEN")
 
-# Ссылка на JSON с участниками
+# Ссылка на JSON с участниками - ИСПРАВЬ ЭТУ ССЫЛКУ!
 JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participants.json"
 
 # Загрузка участников из GitHub
@@ -99,4 +99,3 @@ def run_bot():
     print("Бот запущен!")
     # Запуск polling синхронно
     app.run_polling()
-
