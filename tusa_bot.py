@@ -72,7 +72,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     elif query.data == "socials":
         socials_text = (
-            "Наш инстаграм: https://www.instagram.com/gangtusa/following/\n"
+            "Наш инстаграм: https://www.instagram.com/gangtusa/\n"
             "Наш телеграм канал: https://t.me/tusa_gang"
         )
         await query.edit_message_text(socials_text, reply_markup=main_menu())
@@ -107,3 +107,4 @@ def run_bot():
     print("Бот запущен!")
     # Запуск polling синхронно
     app.run_polling()
+
