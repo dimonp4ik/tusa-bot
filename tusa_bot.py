@@ -385,4 +385,3 @@ def run_bot():
     print("Бот запущен!")
     app.run_polling()
 
-
