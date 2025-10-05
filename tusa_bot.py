@@ -19,7 +19,7 @@ JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participan
 SUBSCRIBERS_FILE = "subscribers.json"
 
 # Список админов (ЗАМЕНИ НА РЕАЛЬНЫЕ ID)
-ADMINS = [123456789, 987654321]  # Твой ID и второго админа
+ADMINS = [671071896, 1254580347]  # Твой ID и второго админа
 
 # Загрузка/сохранение подписчиков
 def load_subscribers():
@@ -292,3 +292,4 @@ def run_bot():
     print("Бот запущен!")
     # Запуск polling синхронно
     app.run_polling()
+
