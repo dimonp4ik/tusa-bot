@@ -19,7 +19,7 @@ JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participan
 SUBSCRIBERS_FILE = "subscribers.json"
 
 # Список админов (ЗАМЕНИ НА РЕАЛЬНЫЕ ID)
-ADMINS = [671071896, 1254580347]  # Твой ID и второго админа
+ADMINS = [123456789, 1254580347]  # Твой ID и второго админа
 
 # Загрузка/сохранение подписчиков
 def load_subscribers():
@@ -72,10 +72,10 @@ async def load_data():
 # Главное меню
 def main_menu():
     keyboard = [
-        [InlineKeyboardButton("Список участников", callback_data="list")],
-        [InlineKeyboardButton("TUSA SPORT", callback_data="sports")],
-        [InlineKeyboardButton("Наши соцсети", callback_data="socials")]
-        # Убрали кнопку "Подписаться" - теперь автоподписка
+        [InlineKeyboardButton("📋 Список участников", callback_data="list")],
+        [InlineKeyboardButton("🏆 TUSA SPORT", callback_data="sports")],
+        [InlineKeyboardButton("ℹ️ Информация TUSA GANG", callback_data="info")],
+        [InlineKeyboardButton("📱 Наши соцсети", callback_data="socials")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -85,6 +85,15 @@ def admin_menu():
         [InlineKeyboardButton("📢 Сделать рассылку", callback_data="broadcast")],
         [InlineKeyboardButton("👥 Статистика подписчиков", callback_data="stats")],
         [InlineKeyboardButton("Главное меню", callback_data="main")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+# Меню выбора типа рассылки
+def broadcast_type_menu():
+    keyboard = [
+        [InlineKeyboardButton("📝 Только текст", callback_data="broadcast_text")],
+        [InlineKeyboardButton("🖼️ Текст + фото", callback_data="broadcast_photo")],
+        [InlineKeyboardButton("🔙 Назад", callback_data="admin")]
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -113,15 +122,14 @@ def sports_menu(sports):
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    save_subscriber(user.id, user.username, user.first_name)  # Автоподписка!
+    save_subscriber(user.id, user.username, user.first_name)
     
     text = (
         "Привет!\n"
         "Я бот компании TUSA GANG, здесь ты можешь получить различную информацию о компании, выбери внизу нужную кнопку.\n\n"
-        "✅ Вы автоматически подписаны на новости!"
+        ":3"
     )
     
-    # Проверяем админа (два ID)
     if user.id in ADMINS:
         keyboard = [
             [InlineKeyboardButton("Обычное меню", callback_data="main")],
@@ -131,8 +139,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(text, reply_markup=main_menu())
 
-# Рассылка сообщения всем подписчикам
-async def broadcast_message(context: ContextTypes.DEFAULT_TYPE, message_text: str):
+# Рассылка текстового сообщения
+async def broadcast_text_message(context: ContextTypes.DEFAULT_TYPE, message_text: str):
     subscribers = load_subscribers()
     success = 0
     failed = 0
@@ -145,13 +153,37 @@ async def broadcast_message(context: ContextTypes.DEFAULT_TYPE, message_text: st
                     text=message_text
                 )
                 success += 1
-                await asyncio.sleep(0.1)  # Чтобы не спамить
+                await asyncio.sleep(0.1)
             except:
                 failed += 1
-                # Помечаем как отписавшегося если не удалось отправить
                 sub["subscribed"] = False
     
-    # Сохраняем изменения если есть отписавшиеся
+    if failed > 0:
+        with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(subscribers, f, ensure_ascii=False, indent=2)
+    
+    return success, failed
+
+# Рассылка фото с текстом
+async def broadcast_photo_message(context: ContextTypes.DEFAULT_TYPE, photo_url: str, caption: str):
+    subscribers = load_subscribers()
+    success = 0
+    failed = 0
+    
+    for sub in subscribers["subscribers"]:
+        if sub["subscribed"]:
+            try:
+                await context.bot.send_photo(
+                    chat_id=sub["user_id"],
+                    photo=photo_url,
+                    caption=caption
+                )
+                success += 1
+                await asyncio.sleep(0.1)
+            except:
+                failed += 1
+                sub["subscribed"] = False
+    
     if failed > 0:
         with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(subscribers, f, ensure_ascii=False, indent=2)
@@ -165,10 +197,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = await load_data()
     participants = data.get("participants", [])
     sports = data.get("sports", [])
+    info = data.get("info", {})
     
     user = query.from_user
-    
-    # АВТОПОДПИСКА при любом взаимодействии с кнопками!
     save_subscriber(user.id, user.username, user.first_name)
 
     if query.data == "list":
@@ -184,6 +215,32 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(
                 "Спортивные события пока не добавлены.", reply_markup=main_menu()
             )
+    elif query.data == "info":
+        if info:
+            text = f"ℹ️ {info.get('title', 'Информация TUSA GANG')}\n\n{info.get('text', '')}"
+            
+            # Отправляем несколько фото если есть
+            photos = info.get("photos", [])
+            if photos:
+                # Первую фото с описанием
+                await context.bot.send_photo(
+                    chat_id=query.message.chat.id,
+                    photo=photos[0],
+                    caption=text,
+                )
+                # Остальные фото без описания
+                for photo_url in photos[1:]:
+                    await context.bot.send_photo(
+                        chat_id=query.message.chat.id,
+                        photo=photo_url
+                    )
+            else:
+                await query.edit_message_text(text, reply_markup=main_menu())
+        else:
+            await query.edit_message_text(
+                "Информация о TUSA GANG пока не добавлена.", 
+                reply_markup=main_menu()
+            )
     elif query.data == "socials":
         socials_text = (
             "Наш инстаграм: https://www.instagram.com/gangtusa/following/\n"
@@ -198,10 +255,21 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
     elif query.data == "broadcast":
         if user.id in ADMINS:
-            # Сохраняем сообщение для рассылки
-            context.user_data["waiting_for_broadcast"] = True
             await query.edit_message_text(
-                "📢 Введите сообщение для рассылки всем подписчикам:"
+                "📢 Выберите тип рассылки:",
+                reply_markup=broadcast_type_menu()
+            )
+    elif query.data == "broadcast_text":
+        if user.id in ADMINS:
+            context.user_data["waiting_for_broadcast_text"] = True
+            await query.edit_message_text(
+                "📝 Введите текст для рассылки:"
+            )
+    elif query.data == "broadcast_photo":
+        if user.id in ADMINS:
+            context.user_data["waiting_for_broadcast_photo"] = True
+            await query.edit_message_text(
+                "🖼️ Введите ссылку на фото:"
             )
     elif query.data == "stats":
         if user.id in ADMINS:
@@ -226,7 +294,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             else:
                 await query.message.reply_text(text)
-            # Кнопка назад к списку участников
             await context.bot.send_message(
                 chat_id=query.message.chat.id,
                 text="Выберите участника:",
@@ -238,16 +305,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if sport:
             text = f"🏆 {sport['name']} 🏆\n\n{sport['description']}\n\n📅 Расписание: {sport['schedule']}"
             
-            # Отправляем несколько фото если есть
-            if sport.get("photos") and len(sport["photos"]) > 0:
-                # Первую фото с описанием
+            photos = sport.get("photos", [])
+            if photos:
                 await context.bot.send_photo(
                     chat_id=query.message.chat.id,
-                    photo=sport["photos"][0],
+                    photo=photos[0],
                     caption=text,
                 )
-                # Остальные фото без описания
-                for photo_url in sport["photos"][1:]:
+                for photo_url in photos[1:]:
                     await context.bot.send_photo(
                         chat_id=query.message.chat.id,
                         photo=photo_url
@@ -255,7 +320,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await query.edit_message_text(text)
             
-            # Кнопка назад к видам спорта
             await context.bot.send_message(
                 chat_id=query.message.chat.id,
                 text="Выберите вид спорта:",
@@ -265,31 +329,60 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка текстовых сообщений для рассылки
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    
-    # АВТОПОДПИСКА при любом текстовом сообщении!
     save_subscriber(user.id, user.username, user.first_name)
     
-    if context.user_data.get("waiting_for_broadcast") and user.id in ADMINS:
-        message_text = update.message.text
-        await update.message.reply_text("🔄 Начинаю рассылку...")
+    message_text = update.message.text
+    
+    # Рассылка только текста
+    if context.user_data.get("waiting_for_broadcast_text") and user.id in ADMINS:
+        await update.message.reply_text("🔄 Начинаю текстовую рассылку...")
         
-        success, failed = await broadcast_message(context, message_text)
+        success, failed = await broadcast_text_message(context, message_text)
         
-        context.user_data["waiting_for_broadcast"] = False
+        context.user_data["waiting_for_broadcast_text"] = False
         await update.message.reply_text(
-            f"✅ Рассылка завершена!\nУспешно: {success}\nНе удалось: {failed}",
+            f"✅ Текстовая рассылка завершена!\nУспешно: {success}\nНе удалось: {failed}",
             reply_markup=admin_menu()
         )
+    
+    # Рассылка фото (первый шаг - получение ссылки на фото)
+    elif context.user_data.get("waiting_for_broadcast_photo") and user.id in ADMINS:
+        if "photo_url" not in context.user_data:
+            # Сохраняем ссылку на фото и запрашиваем текст
+            context.user_data["photo_url"] = message_text
+            context.user_data["waiting_for_broadcast_photo_caption"] = True
+            await update.message.reply_text("📝 Теперь введите текст для фото:")
+        else:
+            await update.message.reply_text("❌ Ошибка: неверная последовательность")
+    
+    # Ввод текста для фото (второй шаг)
+    elif context.user_data.get("waiting_for_broadcast_photo_caption") and user.id in ADMINS:
+        photo_url = context.user_data.get("photo_url")
+        caption = message_text
+        
+        await update.message.reply_text("🔄 Начинаю рассылку с фото...")
+        
+        success, failed = await broadcast_photo_message(context, photo_url, caption)
+        
+        # Очищаем временные данные
+        context.user_data["waiting_for_broadcast_photo"] = False
+        context.user_data["waiting_for_broadcast_photo_caption"] = False
+        context.user_data["photo_url"] = None
+        
+        await update.message.reply_text(
+            f"✅ Рассылка с фото завершена!\nУспешно: {success}\nНе удалось: {failed}",
+            reply_markup=admin_menu()
+        )
+    
     else:
         await update.message.reply_text("Используйте кнопки меню :)", reply_markup=main_menu())
 
 def run_bot():
-    # Создаем приложение
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
-    # Запуск polling синхронно
     app.run_polling()
+
 
