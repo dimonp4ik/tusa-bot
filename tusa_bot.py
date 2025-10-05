@@ -19,7 +19,7 @@ JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participan
 SUBSCRIBERS_FILE = "subscribers.json"
 
 # Список админов
-ADMINS = [123456789, 1254580347]  # Твой ID и второго админа
+ADMINS = [671071896, 1254580347]  # Твой ID и второго админа
 
 # Загрузка/сохранение подписчиков
 def load_subscribers():
@@ -127,7 +127,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "Привет!\n"
         "Я бот компании TUSA GANG, здесь ты можешь получить различную информацию о компании, выбери внизу нужную кнопку.\n\n"
-        "✅ Вы автоматически подписаны на новости!"
+        ":3"
     )
     
     if user.id in ADMINS:
@@ -391,3 +391,4 @@ def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
+
