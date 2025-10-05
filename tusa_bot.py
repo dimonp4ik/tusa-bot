@@ -18,7 +18,7 @@ TOKEN = os.getenv("TUSA_TOKEN")
 JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participants.json"
 SUBSCRIBERS_FILE = "subscribers.json"
 
-# Список админов (ЗАМЕНИ НА РЕАЛЬНЫЕ ID)
+# Список админов
 ADMINS = [123456789, 1254580347]  # Твой ID и второго админа
 
 # Загрузка/сохранение подписчиков
@@ -127,7 +127,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "Привет!\n"
         "Я бот компании TUSA GANG, здесь ты можешь получить различную информацию о компании, выбери внизу нужную кнопку.\n\n"
-        ":3"
+        "✅ Вы автоматически подписаны на новости!"
     )
     
     if user.id in ADMINS:
@@ -234,7 +234,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         chat_id=query.message.chat.id,
                         photo=photo_url
                     )
+                # Кнопка назад после всех фото
+                await context.bot.send_message(
+                    chat_id=query.message.chat.id,
+                    text="Выберите раздел:",
+                    reply_markup=main_menu()
+                )
             else:
+                # Если фото нет - просто текст с кнопками
                 await query.edit_message_text(text, reply_markup=main_menu())
         else:
             await query.edit_message_text(
@@ -384,4 +391,3 @@ def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
-
