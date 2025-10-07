@@ -2,6 +2,8 @@ import os
 import json
 import aiohttp
 import asyncio
+import base64
+import requests
 from datetime import datetime
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
@@ -21,13 +23,89 @@ SUBSCRIBERS_FILE = "subscribers.json"
 # Список админов
 ADMINS = [671071896, 1254580347]  # Твой ID и второго админа
 
+# Функции для работы с GitHub
+def upload_subscribers_to_github():
+    try:
+        subscribers_data = load_subscribers()
+        
+        # GitHub токен
+        GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+        if not GITHUB_TOKEN:
+            print("❌ GITHUB_TOKEN не установлен")
+            return False
+            
+        REPO = "dimonp4ik/tusa-bot"
+        FILE_PATH = "subscribers.json"
+        
+        # Кодируем данные
+        content = json.dumps(subscribers_data, ensure_ascii=False, indent=2)
+        content_b64 = base64.b64encode(content.encode('utf-8')).decode('utf-8')
+        
+        # GitHub API
+        url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        
+        # Получаем текущий SHA
+        response = requests.get(url, headers=headers)
+        sha = response.json().get("sha") if response.status_code == 200 else None
+        
+        data = {
+            "message": "Auto-update subscribers",
+            "content": content_b64,
+            "sha": sha
+        }
+        
+        response = requests.put(url, headers=headers, json=data)
+        if response.status_code == 200:
+            print("✅ Подписчики сохранены в GitHub")
+            return True
+        else:
+            print(f"❌ Ошибка GitHub: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"❌ Ошибка загрузки в GitHub: {e}")
+        return False
+
+def load_subscribers_from_github():
+    try:
+        REPO = "dimonp4ik/tusa-bot"
+        FILE_PATH = "subscribers.json"
+        url = f"https://raw.githubusercontent.com/{REPO}/main/{FILE_PATH}"
+        
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"subscribers": []}
+    except:
+        return {"subscribers": []}
+
 # Загрузка/сохранение подписчиков
 def load_subscribers():
     try:
+        # Сначала пробуем загрузить с сервера
         with open(SUBSCRIBERS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            local_data = json.load(f)
+        
+        # Если на сервере пусто, грузим из GitHub
+        if not local_data.get("subscribers"):
+            github_data = load_subscribers_from_github()
+            if github_data.get("subscribers"):
+                with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(github_data, f, ensure_ascii=False, indent=2)
+                return github_data
+        
+        return local_data
     except:
-        return {"subscribers": []}
+        # Если файла нет вообще, грузим из GitHub
+        github_data = load_subscribers_from_github()
+        if github_data.get("subscribers"):
+            with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(github_data, f, ensure_ascii=False, indent=2)
+        return github_data
 
 def save_subscriber(user_id, username, first_name):
     data = load_subscribers()
@@ -58,6 +136,12 @@ def save_subscriber(user_id, username, first_name):
         
     with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    
+    # Авто-синхронизация с GitHub (в фоне)
+    try:
+        upload_subscribers_to_github()
+    except Exception as e:
+        print(f"❌ Ошибка синхронизации с GitHub: {e}")
 
 # Загрузка данных из GitHub
 async def load_data():
@@ -124,12 +208,12 @@ def sports_menu(sports):
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    save_subscriber(user.id, user.username, user.first_name)  # Автоматически сохраняем!
+    save_subscriber(user.id, user.username, user.first_name)
     
     text = (
         "Привет!\n"
         "Я бот компании TUSA GANG, здесь ты можешь получить различную информацию о компании, выбери внизу нужную кнопку.\n\n"
-        ":3"
+        "✅ Вы автоматически подписаны на новости!"
     )
     
     if user.id in ADMINS:
@@ -208,7 +292,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     info = data.get("info", {})
     
     user = query.from_user
-    save_subscriber(user.id, user.username, user.first_name)  # Сохраняем при любом нажатии кнопки!
+    save_subscriber(user.id, user.username, user.first_name)
 
     if query.data == "list":
         await query.edit_message_text(
@@ -356,7 +440,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка текстовых сообщений для рассылки
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    save_subscriber(user.id, user.username, user.first_name)  # Сохраняем при любом сообщении!
+    save_subscriber(user.id, user.username, user.first_name)
     
     message_text = update.message.text
     
@@ -411,5 +495,3 @@ def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
-
-
