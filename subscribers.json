@@ -1,3 +1,12 @@
 {
-  "subscribers": []
+  "subscribers": [
+    {
+      "user_id": 671071896,
+      "username": "dimonp4ik",
+      "first_name": "Дима",
+      "subscribed": true,
+      "joined_date": "2025-10-07T21:42:59.872743",
+      "last_activity": "2025-10-07T21:42:59.872753"
+    }
+  ]
 }
