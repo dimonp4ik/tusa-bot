@@ -1,28 +1,28 @@
 {
   "subscribers": [
     {
-      "user_id": 1352183276,
-      "username": "justttinka",
-      "first_name": "юстинаа<3",
-      "subscribed": true,
-      "joined_date": "2025-10-07T21:44:26.961610",
-      "last_activity": "2025-10-07T21:44:26.961617"
-    },
-    {
       "user_id": 671071896,
       "username": "dimonp4ik",
       "first_name": "Дима",
       "subscribed": true,
-      "joined_date": "2025-10-07T21:46:37.091384",
-      "last_activity": "2025-10-07T21:46:37.091393"
+      "joined_date": "2025-10-07T21:42:59.872743",
+      "last_activity": "2025-10-07T21:44:09.111667"
+    },
+    {
+      "user_id": 1352183276,
+      "username": "justttinka",
+      "first_name": "юстинаа<3",
+      "subscribed": true,
+      "joined_date": "2025-10-07T21:43:59.987601",
+      "last_activity": "2025-10-07T21:44:19.664585"
     },
     {
       "user_id": 1254580347,
       "username": "emefuze",
       "first_name": "Мижган",
       "subscribed": true,
-      "joined_date": "2025-10-07T21:46:50.377976",
-      "last_activity": "2025-10-07T21:47:45.473188"
+      "joined_date": "2025-10-07T21:47:50.040290",
+      "last_activity": "2025-10-07T21:47:50.040304"
     }
   ]
 }
