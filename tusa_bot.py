@@ -45,6 +45,7 @@ def save_subscriber(user_id, username, first_name):
             "joined_date": datetime.now().isoformat(),
             "last_activity": datetime.now().isoformat()
         })
+        print(f"🆕 Новый подписчик: {first_name} (@{username}) ID: {user_id}")
     else:
         # Обновляем существующего пользователя
         existing_user["subscribed"] = True
@@ -53,6 +54,7 @@ def save_subscriber(user_id, username, first_name):
             existing_user["username"] = username
         if first_name:
             existing_user["first_name"] = first_name
+        print(f"🔄 Обновлен подписчик: {first_name} (@{username}) ID: {user_id}")
         
     with open(SUBSCRIBERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -122,7 +124,7 @@ def sports_menu(sports):
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    save_subscriber(user.id, user.username, user.first_name)
+    save_subscriber(user.id, user.username, user.first_name)  # Автоматически сохраняем!
     
     text = (
         "Привет!\n"
@@ -145,6 +147,8 @@ async def broadcast_text_message(context: ContextTypes.DEFAULT_TYPE, message_tex
     success = 0
     failed = 0
     
+    print(f"📢 Начинаю рассылку для {len(subscribers['subscribers'])} подписчиков...")
+    
     for sub in subscribers["subscribers"]:
         if sub["subscribed"]:
             try:
@@ -154,7 +158,8 @@ async def broadcast_text_message(context: ContextTypes.DEFAULT_TYPE, message_tex
                 )
                 success += 1
                 await asyncio.sleep(0.1)
-            except:
+            except Exception as e:
+                print(f"❌ Не удалось отправить {sub['first_name']}: {e}")
                 failed += 1
                 sub["subscribed"] = False
     
@@ -170,6 +175,8 @@ async def broadcast_photo_message(context: ContextTypes.DEFAULT_TYPE, photo_url:
     success = 0
     failed = 0
     
+    print(f"📢 Начинаю рассылку фото для {len(subscribers['subscribers'])} подписчиков...")
+    
     for sub in subscribers["subscribers"]:
         if sub["subscribed"]:
             try:
@@ -180,7 +187,8 @@ async def broadcast_photo_message(context: ContextTypes.DEFAULT_TYPE, photo_url:
                 )
                 success += 1
                 await asyncio.sleep(0.1)
-            except:
+            except Exception as e:
+                print(f"❌ Не удалось отправить фото {sub['first_name']}: {e}")
                 failed += 1
                 sub["subscribed"] = False
     
@@ -200,7 +208,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     info = data.get("info", {})
     
     user = query.from_user
-    save_subscriber(user.id, user.username, user.first_name)
+    save_subscriber(user.id, user.username, user.first_name)  # Сохраняем при любом нажатии кнопки!
 
     if query.data == "list":
         await query.edit_message_text(
@@ -284,7 +292,19 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             total = len(subscribers["subscribers"])
             active = len([s for s in subscribers["subscribers"] if s["subscribed"]])
             
-            stats_text = f"📊 Статистика подписчиков:\n\nВсего: {total}\nАктивных: {active}"
+            # Показываем последних 5 подписчиков
+            recent_subs = subscribers["subscribers"][-5:]
+            subs_list = "\n".join([
+                f"• {sub['first_name']} (@{sub.get('username', 'нет username')})" 
+                for sub in recent_subs
+            ])
+            
+            stats_text = (
+                f"📊 Статистика подписчиков:\n\n"
+                f"Всего: {total}\n"
+                f"Активных: {active}\n\n"
+                f"Последние подписчики:\n{subs_list}"
+            )
             await query.edit_message_text(stats_text, reply_markup=admin_menu())
     elif query.data == "main":
         await query.edit_message_text("Главное меню:", reply_markup=main_menu())
@@ -336,7 +356,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка текстовых сообщений для рассылки
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    save_subscriber(user.id, user.username, user.first_name)
+    save_subscriber(user.id, user.username, user.first_name)  # Сохраняем при любом сообщении!
     
     message_text = update.message.text
     
@@ -391,4 +411,5 @@ def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
+
 
