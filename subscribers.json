@@ -6,7 +6,7 @@
       "first_name": "Дима",
       "subscribed": true,
       "joined_date": "2025-10-07T21:42:59.872743",
-      "last_activity": "2025-10-08T09:11:50.880230"
+      "last_activity": "2025-10-08T09:11:49.569546"
     },
     {
       "user_id": 1352183276,
@@ -39,6 +39,14 @@
       "subscribed": true,
       "joined_date": "2025-10-08T07:32:24.223075",
       "last_activity": "2025-10-08T07:32:36.151891"
+    },
+    {
+      "user_id": 1033670005,
+      "username": "vladusha_solflower",
+      "first_name": "Влад",
+      "subscribed": true,
+      "joined_date": "2025-10-08T09:13:46.103684",
+      "last_activity": "2025-10-08T09:13:46.103691"
     }
   ]
 }
