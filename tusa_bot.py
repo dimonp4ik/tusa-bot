@@ -21,7 +21,7 @@ JSON_URL = "https://raw.githubusercontent.com/dimonp4ik/tusa-bot/main/participan
 SUBSCRIBERS_FILE = "subscribers.json"
 
 # Список админов
-ADMINS = [671071896, 1254580347]  # Твой ID и второго админа
+ADMINS = [671071896, 1254580347 , 1634306368]  # Твой ID и второго админа
 
 # Функции для работы с GitHub
 def upload_subscribers_to_github():
@@ -495,3 +495,4 @@ def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
+
