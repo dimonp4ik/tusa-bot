@@ -14,7 +14,7 @@ def ping_self():
                 print("Pinged successfully!")
             except Exception as e:
                 print(f"Ping failed: {e}")
-            time.sleep(300)
+            time.sleep(49)
     
     ping_thread = Thread(target=ping, daemon=True)
     ping_thread.start()
@@ -31,3 +31,4 @@ def keep_alive():
     ping_self()
     t = Thread(target=run)
     t.start()
+
